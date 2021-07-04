@@ -1,0 +1,39 @@
+// 左選單
+.left_bar {
+  width: 80px;
+  background: #243038;
+  color: #fff;
+  li {
+    text-align: center;
+    border-bottom: 1px solid rgba(231, 231, 231, 0.2);
+  }
+  a {
+    padding: 10px;
+    color: #fff;
+    display: inline-block;
+    opacity: 0.8;
+    font-size: 12px;
+    @include ani;
+  }
+  img {
+    width: 25px;
+    filter: brightness(3);
+    @include ani;
+  }
+  li:hover,
+  li.active {
+    a {
+      opacity: 1;
+      color: $blue;
+    }
+    img {
+      filter: brightness(1);
+    }
+  }
+}
+.system_time {
+  font-size: 0.85rem;
+  span {
+    font-family: $font_num;
+  }
+}

@@ -1,0 +1,17 @@
+@import url(https://fonts.googleapis.com/earlyaccess/notosanstc.css);
+@import url(https://at.alicdn.com/t/font_1881832_fkhslwr5tm.css);
+@import "fontawesome.min";
+@import "reset";
+// @import "../boostrap/bootstrap";
+@import "../boostrap/bootstrap-grid";
+@import "swiper.min";
+
+//mixmin
+@import "table.scss";
+
+//pages
+@import "form.scss";
+@import "main.scss";
+@import "nav.scss";
+@import "content.scss";
+@import "modal.scss";

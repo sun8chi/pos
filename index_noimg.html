@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <meta http-equiv="cache-control" content="no-cache" />
+    <meta http-equiv="expires" content="0" />
+    <title>POS</title>
+    <link rel="icon" type="image/png" href="images/favicon.png" />
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css?v0812" />
+    <link rel="stylesheet" href="css/all.css?v0812" />
+  </head>
+
+  <body>
+    <div class="container" id="app">
+      <!-- 左欄位 -->
+      <div class="left_bar">
+        <ul>
+          <li class="active">
+            <a href="#">
+              <img src="img/icon_bar/nav01.png" alt="" />
+              <p>產品列表</p>
+            </a>
+          </li>
+          <li>
+            <a href="#">
+              <img src="img/icon_bar/nav02.png" alt="" />
+              <p>重新讀取</p>
+            </a>
+          </li>
+          <li>
+            <a href="#" v-on:click.prevrnt="Transfer_order_modal = true">
+              <img src="img/icon_bar/nav03.png" alt="" />
+              <p>轉入訂單</p>
+            </a>
+          </li>
+          <li>
+            <a href="#">
+              <img src="img/icon_bar/nav04.png" alt="" />
+              <p>發票設定</p>
+            </a>
+          </li>
+          <li>
+            <a href="#">
+              <img src="img/icon_bar/nav05.png" alt="" />
+              <p>系統作業</p>
+            </a>
+          </li>
+          <li>
+            <a href="#">
+              <img src="img/icon_bar/nav06.png" alt="" />
+              <p>銷售圖表</p>
+            </a>
+          </li>
+          <li>
+            <a href="#" v-on:click.prevrnt="user_setup_modal = true">
+              <img src="img/icon_bar/nav07.png" alt="" />
+              <p>進階設定</p>
+            </a>
+          </li>
+          <li>
+            <a href="#">
+              <img src="img/icon_bar/nav08.png" alt="" />
+              <p>更多</p>
+            </a>
+          </li>
+          <li>
+            <a href="#">
+              <img src="img/icon_bar/nav09.png" alt="" />
+              <p>登出</p>
+            </a>
+          </li>
+        </ul>
+      </div>
+      <!-- 右邊主內容 -->
+      <div class="content">
+        <!-- header -->
+        <div class="header">
+          <!-- 左邊工具列 -->
+          <div class="toolbar">
+            <ul v-on:click.prevent="memberModal = true">
+              <li>
+                <span class="online"></span>
+                <!-- 離線 -->
+                <!-- <span class="online not"></span> -->
+              </li>
+              <li>
+                <a href="#">
+                  <i class="iconfont icon-user"></i>
+                  黃大名
+                </a>
+              </li>
+              <li>
+                <a href="#">
+                  <i class="iconfont icon-order"></i>
+                  {{ checkout_type_show }}
+                </a>
+              </li>
+            </ul>
+          </div>
+          <!-- 搜尋欄 -->
+          <div class="search_bar inline_form mx-auto">
+            <input class="mr-2" type="text" placeholder="搜尋產品代碼" style="ime-mode:disabled" onkeyup="value=value.replace(/[^\w=@#]|_/ig,'')" v-on:keyup.13="addCartCode()" :value="searchCode" v-model="searchCode" />
+            <a href="#" class="btn_rounded" v-on:click.prevent="addCartCode()"><i class="iconfont icon-search"></i></a>
+          </div>
+          <!-- 右邊工具 -->
+          <div class="toolbar ml-auto">
+            <ul>
+              <li class="system_time"></li>
+              <li>
+                <a class="btn_sm btn_line_white" href="#" v-on:click.prevrnt="annocementModal = true">
+                  <i class="iconfont icon-bell"></i>
+                  公告
+                </a>
+              </li>
+              <li>
+                <a href="#">
+                  店長／黃大名
+                </a>
+              </li>
+              <li>
+                <a href="#">
+                  <i class="iconfont icon-reload-"></i>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <!-- 主內容 -->
+        <div class="main">
+          <!-- 左邊 -->
+          <div class="content_info">
+            <!-- 分類切換 -->
+            <!-- 若要無圖片就在 type_change 加上 no_image-->
+            <div class="type_change no_image">
+              <swiper class="swiper_type" :options="swiperCategory" ref="mySwiper" @someSwiperEvent="swiper()">
+                <swiper-slide v-for="(item,key,index) in categorysList" :key="index">
+                  <a href="#" class="item" v-on:click.prevent="thisCateId = item.cId" :class="{'active':thisCateId == item.cId}">
+                    <img :src="item.icon" alt="" />
+                    <p :style="{'font-size':`${storeSetUp.userSize}px`}">{{ item.name }}</p>
+                  </a>
+                </swiper-slide>
+                <div class="swiper-button-prev cate_left" slot="button-prev"></div>
+                <div class="swiper-button-next cate_right" slot="button-next"></div>
+              </swiper>
+            </div>
+            <!-- 產品列表 -->
+            <div class="product_box">
+              <!-- 產品列表 -->
+              <!-- 若要無圖片就在 product_list 加上 no_image-->
+              <div class="product_list no_image">
+                <div class="p_item" :class="{active:item.pId == check_product_id}" v-on:click.prevent="addCart(item),check_product_id = item.pId" v-for="(item,key,index) in product_list" :key="index" v-if="item.cateId == thisCateId">
+                  <div class="p_image" :style="{ 'background-image': 'url(' + item.imgURL + ')' }">
+                    <div class="p_price">${{ item.p_price }}</div>
+                  </div>
+                  <div class="p_name" :style="{'font-size':`${storeSetUp.userSize}px`,'background-color': storeSetUp.userColor}">{{ item.p_name }}</div>
+                  <div class="p_code" :style="{'font-size':`${storeSetUp.userSize}px`}">{{ item.p_code }}</div>
+                </div>
+              </div>
+              <!-- 自選項目 -->
+              <div class="product_choose">
+                <div class="choose_item" v-for="(item,key,index) in select_product_choose" :key="key">
+                  <div class="form_title">{{ item.name }}</div>
+                  <div class="choose_list">
+                    <div class="form_group" v-on:click="selectCutomer()" v-for="(item_choose,item_key,item_index) in item.list" :key="item_key">
+                      <input :type="item.type" :id="item_choose" :name="item.name" :value="item_choose" />
+                      <div class="form_label">
+                        <label :for="item_choose">{{ item_choose }}</label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- 左邊頁尾 -->
+            <div class="product_footer">
+              <div class="footer_btn">
+                <a href="#" class="btn">快速鍵</a>
+                <a href="#" class="btn">更多功能</a>
+                <a href="#" class="btn">更多功能</a>
+                <a href="#" class="btn">更多功能</a>
+              </div>
+            </div>
+          </div>
+          <!-- 右邊購物車 -->
+          <div class="detail_info">
+            <div class="cart_box">
+              <!-- 標題列 -->
+              <div class="cart_title">
+                <div class="invoice">發票號碼 {{ invoice_num }}</div>
+                <div class="clean_all" v-on:click.prevent="clear_all_cart">全部清除 <i class="iconfont icon-delete2"></i></div>
+              </div>
+              <!-- 購物車列表 -->
+              <div class="cart_list">
+                <ul class="list_title">
+                  <li class="delete"></li>
+                  <li class="name">產品名稱</li>
+                  <li class="count">數量</li>
+                  <li class="price">小計</li>
+                </ul>
+                <div class="list_item" v-for="(item,key,index) in cart.cart_product" :key="index" :id="key" v-on:click.prevent="selectCartItem(key)">
+                  <ul :class="{active:cartIndex == key}">
+                    <li class="delete" v-on:click.stop="delete_product(key)">
+                      <i class="iconfont icon-delete"></i>
+                    </li>
+                    <li class="name">
+                      <h4>{{ item.name }}</h4>
+                      <p>{{ item.p_code }}</p>
+                    </li>
+                    <li class="count">
+                      <div class="select_num">
+                        <div class="count_btn" v-on:click.prevent="lessNum()" href="">-</div>
+                        <span>{{ item.num }}</span>
+                        <div class="count_btn" v-on:click.prevent="addNum()" href="">+</div>
+                      </div>
+                    </li>
+                    <li class="price">${{ item.price }}</li>
+                  </ul>
+                  <div class="list_more">
+                    <span v-for="(item_choose,key_choose,index_choose) in item.choose" :key="index_choose"> {{ item_choose }} </span>
+                  </div>
+                </div>
+              </div>
+              <!-- 購物車確認 -->
+              <div class="cart_detail">
+                <ul>
+                  <li class="cart_checkout">
+                    <ul>
+                      <li>
+                        <h4>小計</h4>
+                        <p>${{ countTotal() }}</p>
+                      </li>
+                      <li>
+                        <h4>數量</h4>
+                        <p>{{ countNum() }} <span>件</span></p>
+                      </li>
+                      <li>
+                        <h4>折扣</h4>
+                        <p>${{ cart.discount }}</p>
+                      </li>
+                    </ul>
+                    <div v-on:click="checkOutModal = true" class="btn btn_ornge">
+                      <h3>${{ countTotal() - cart.discount }}</h3>
+                      <span>結帳</span>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 結帳方式 modal -->
+      <div class="modal_window" :class="{'show':checkOutModal}">
+        <div class="modal_body">
+          <div class="modal_header">
+            <h3 class="modal_title">結帳系統</h3>
+            <div class="title_invoice">
+              <i class="iconfont icon-order"></i>電子發票：<span>{{ invoice_num }}</span>
+            </div>
+            <div class="title_number"><i class="iconfont icon-bell"></i>單號：<input type="text" value="001" /></div>
+            <a href="#" class="modal_close" v-on:click.prevrnt="checkOutModal = false">
+              <i class="iconfont icon-delete"></i>
+            </a>
+          </div>
+          <!-- 內容 -->
+          <div class="modal_content">
+            <!-- 左邊 結帳資訊 -->
+            <div class="check_area">
+              <!-- 其他自填項目 -->
+              <div class="check_form">
+                <!-- 內用 -->
+                <div class="form_row" v-if="checkout_type == 'forhere'">
+                  <label for="form01" class="form_label">桌號</label>
+                  <div class="form_input">
+                    <select class="form-control" id="">
+                      <option>1</option>
+                      <option>2</option>
+                      <option>3</option>
+                      <option>4</option>
+                      <option>5</option>
+                    </select>
+                  </div>
+                </div>
+                <!-- 外帶 -->
+                <div class="form_row" v-if="checkout_type == 'togo'">
+                  <label for="form01" class="form_label">取餐時間</label>
+                  <div class="form_input">
+                    <input type="date" id="form01" />
+                  </div>
+                </div>
+                <!-- 外送 -->
+                <div class="form_row" v-if="checkout_type == 'delivery'">
+                  <label for="form01" class="form_label">地址</label>
+                  <div class="form_input">
+                    <input type="text" id="form01" />
+                  </div>
+                </div>
+                <!-- 寄庫 -->
+                <div class="form_row" v-if="checkout_type == 'deposit'">
+                  <label for="form01" class="form_label">指定取貨日</label>
+                  <div class="form_input">
+                    <input type="date" id="form01" />
+                  </div>
+                </div>
+                <!-- 預約單 -->
+                <div class="form_row" v-if="checkout_type == 'reservation'">
+                  <label for="form01" class="form_label">指定取貨日</label>
+                  <div class="form_input">
+                    <input type="date" id="form01" />
+                  </div>
+                </div>
+                <!-- 所有 -->
+                <div class="form_row">
+                  <label for="form01" class="form_label">現金禮券</label>
+                  <div class="form_input">
+                    <input type="text" id="form01" />
+                  </div>
+                </div>
+                <div class="form_row">
+                  <label for="form02" class="form_label">統一編號</label>
+                  <div class="form_input">
+                    <input type="text" id="form02" />
+                  </div>
+                </div>
+                <div class="form_row">
+                  <label for="form03" class="form_label">愛心碼</label>
+                  <div class="form_input">
+                    <input type="text" id="form03" />
+                  </div>
+                </div>
+                <div class="form_row">
+                  <label for="form04" class="form_label">手機條碼</label>
+                  <div class="form_input">
+                    <input type="text" id="form04" />
+                  </div>
+                </div>
+                <div class="form_row">
+                  <label for="form05" class="form_label">備註</label>
+                  <div class="form_input">
+                    <input type="text" id="form05" />
+                  </div>
+                </div>
+              </div>
+              <!-- 其他選項 -->
+              <div class="check_other">
+                <a href="#" class="active">外加稅B2B</a>
+                <a href="#">禮券198</a>
+              </div>
+            </div>
+            <!-- 右邊 -->
+            <div class="payment_area">
+              <!-- 總金額 -->
+              <div class="payment_cash" v-if="checkout_type !== 'reservation'">
+                <div class="total">
+                  <p>總金額</p>
+                  <h3>${{ cart.total }}</h3>
+                </div>
+                <div>
+                  <p>收現</p>
+                  <input type="text" :value="get_cash" v-model="get_cash" />
+                </div>
+                <div class="give">
+                  <p>找零</p>
+                  <h3>${{ get_cash - cart.total }}</h3>
+                </div>
+              </div>
+              <!-- 收現按鈕 -->
+              <div class="cash_list" v-if="checkout_type !== 'reservation'">
+                <span v-on:click.prevent="get_cash += 1000">1000</span>
+                <span v-on:click.prevent="get_cash += 500">500</span>
+                <span v-on:click.prevent="get_cash += 100">100</span>
+                <span v-on:click.prevent="get_cash += 50">50</span>
+                <span v-on:click.prevent="get_cash += 30">30</span>
+                <span v-on:click.prevent="get_cash += 10">10</span>
+                <span v-on:click.prevent="get_cash += 5">5</span>
+                <span v-on:click.prevent="get_cash = 0">0</span>
+              </div>
+              <!-- 結帳 -->
+              <div class="checkout">
+                <a href="#" class="btn" v-on:click.prevent="checkout_cash" v-if="checkout_type !== 'reservation'">確認結帳</a>
+                <a href="#" class="btn" v-if="checkout_type == 'reservation'">確認</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- 會員專區 modal -->
+      <div class="modal_window" :class="{'show':memberModal}">
+        <div class="modal_body">
+          <div class="modal_header">
+            <h3 class="modal_title">客戶查詢</h3>
+            <a href="#" class="modal_close" v-on:click.prevrnt="memberModal = false">
+              <i class="iconfont icon-delete"></i>
+            </a>
+          </div>
+          <!-- 內容 -->
+          <div class="modal_content">
+            <!-- 左邊會員查詢 -->
+            <div class="member_search">
+              <div class="form_row">
+                <div class="form_input mr-2">
+                  <select class="form-control" id="">
+                    <option>手機</option>
+                    <option>姓名</option>
+                  </select>
+                </div>
+                <div class="form_input mr-2">
+                  <input type="text" class="form-control-plaintext" id="member_name" value="黃大明" />
+                </div>
+                <a href="#" class="btn btn-primary">搜尋</a>
+              </div>
+
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>名稱</th>
+                    <th>手機</th>
+                    <th>統編</th>
+                    <th>地址</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>黃大明</td>
+                    <td>09123123123</td>
+                    <td>5918273</td>
+                    <td>高雄市左營區123號</td>
+                  </tr>
+                  <tr>
+                    <td>黃大明</td>
+                    <td>09123123123</td>
+                    <td>5918273</td>
+                    <td>高雄市左營區123號</td>
+                  </tr>
+                  <tr>
+                    <td>黃大明</td>
+                    <td>09123123123</td>
+                    <td>5918273</td>
+                    <td>高雄市左營區123號</td>
+                  </tr>
+                  <tr>
+                    <td>黃大明</td>
+                    <td>09123123123</td>
+                    <td>5918273</td>
+                    <td>高雄市左營區123號</td>
+                  </tr>
+                  <tr>
+                    <td>黃大明</td>
+                    <td>09123123123</td>
+                    <td>5918273</td>
+                    <td>高雄市左營區123號</td>
+                  </tr>
+                  <tr>
+                    <td>黃大明</td>
+                    <td>09123123123</td>
+                    <td>5918273</td>
+                    <td>高雄市左營區123號</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <!-- 結帳類型 -->
+            <div class="modal_tab">
+              <a href="#" :class="{active:checkout_type == 'forhere'}" v-on:click.prevent="checkout_type = 'forhere'">內用</a>
+              <a href="#" :class="{active:checkout_type == 'togo'}" v-on:click.prevent="checkout_type = 'togo'">外帶</a>
+              <a href="#" :class="{active:checkout_type == 'delivery'}" v-on:click.prevent="checkout_type = 'delivery'">外送</a>
+              <a href="#" :class="{active:checkout_type == 'deposit'}" v-on:click.prevent="checkout_type = 'deposit'">寄庫單</a>
+              <a href="#" :class="{active:checkout_type == 'reservation'}" v-on:click.prevent="checkout_type = 'reservation'">預約單</a>
+              <a href="#">暫存單</a>
+            </div>
+            <!-- 取貨類型列表 -->
+            <div class="type_list">
+              <ul>
+                <li class="active">
+                  <h3>01</h3>
+                  <h4>黃大明</h4>
+                  <p>09123123</p>
+                </li>
+                <li>
+                  <h3>02</h3>
+                  <h4></h4>
+                  <p></p>
+                </li>
+                <li class="active">
+                  <h3>03</h3>
+                  <h4>黃大明</h4>
+                  <p>09123123</p>
+                </li>
+                <li>
+                  <h3>04</h3>
+                  <h4></h4>
+                  <p></p>
+                </li>
+                <li class="active">
+                  <h3>05</h3>
+                  <h4>黃大明</h4>
+                  <p>09123123</p>
+                </li>
+                <li class="active">
+                  <h3>06</h3>
+                  <h4>黃大明</h4>
+                  <p>09123123</p>
+                </li>
+                <li>
+                  <h3>07</h3>
+                  <h4></h4>
+                  <p></p>
+                </li>
+                <li>
+                  <h3>08</h3>
+                  <h4></h4>
+                  <p></p>
+                </li>
+                <li>
+                  <h3>09</h3>
+                  <h4></h4>
+                  <p></p>
+                </li>
+                <li class="active">
+                  <h3>10</h3>
+                  <h4>黃大明</h4>
+                  <p>09123123</p>
+                </li>
+                <li class="active">
+                  <h3>11</h3>
+                  <h4>黃大明</h4>
+                  <p>09123123</p>
+                </li>
+                <li>
+                  <h3>12</h3>
+                  <h4></h4>
+                  <p></p>
+                </li>
+                <li>
+                  <h3>13</h3>
+                  <h4></h4>
+                  <p></p>
+                </li>
+                <li class="active">
+                  <h3>14</h3>
+                  <h4>黃大明</h4>
+                  <p>09123123</p>
+                </li>
+                <li class="active">
+                  <h3>15</h3>
+                  <h4>黃大明</h4>
+                  <p>09123123</p>
+                </li>
+              </ul>
+            </div>
+            <a href="#" v-on:click.prevrnt="memberModal = false" class="btn btn_ornge btn_block btn_lg">確認</a>
+          </div>
+        </div>
+      </div>
+      <!-- 總公司公告 modal -->
+      <div class="modal_window" :class="{'show':annocementModal}">
+        <div class="modal_body">
+          <div class="modal_header">
+            <h3 class="modal_title">總公司公告</h3>
+            <a href="#" class="modal_close" v-on:click.prevrnt="annocementModal = false">
+              <i class="iconfont icon-delete"></i>
+            </a>
+          </div>
+          <div class="modal_content">
+            <p>公告內容公告內容公告內容公告內容公告內容公告內容公告內容</p>
+          </div>
+        </div>
+      </div>
+      <!-- 轉入訂單 modal -->
+      <div class="modal_window" :class="{'show':Transfer_order_modal}">
+        <div class="modal_body">
+          <div class="modal_header">
+            <h3 class="modal_title">轉入訂單</h3>
+            <a href="#" class="modal_close" v-on:click.prevrnt="Transfer_order_modal = false">
+              <i class="iconfont icon-delete"></i>
+            </a>
+          </div>
+          <div class="modal_content">
+            <p>嵌入iframe</p>
+          </div>
+        </div>
+      </div>
+      <!-- 進階設定 modal -->
+      <div class="modal_window" :class="{'show':user_setup_modal}">
+        <div class="modal_body">
+          <div class="modal_header">
+            <h3 class="modal_title">進階設定</h3>
+            <a href="#" class="modal_close" v-on:click.prevrnt="user_setup_modal = false">
+              <i class="iconfont icon-delete"></i>
+            </a>
+          </div>
+          <div class="modal_content">
+            <div>
+              <div class="check_form">
+                <div class="form_row">
+                  <label for="form01" class="form_label">產品文字尺寸</label>
+                  <div class="form_input user_fontsize">
+                    <a href="#" class="btn" v-on:click.prevent="storeSetUp.userSize -=2"><i class="iconfont icon-minus"></i></a>
+                    <p :style="{'font-size':`${storeSetUp.userSize}px`}">尺寸瀏覽</p>
+                    <a href="#" class="btn" v-on:click.prevent="fontsizeUp"><i class="iconfont icon-plus"></i></a>
+                  </div>
+                </div>
+                <div class="form_row">
+                  <label for="form02" class="form_label">顏色</label>
+                  <div class="form_input user_color" v-on:click.prevent="set_color(event)">
+                    <span style="background:#bf1932"></span>
+                    <span style="background:#e2583e"></span>
+                    <span style="background:#ff6f61"></span>
+                    <span style="background:#f0c05a"></span>
+                    <span style="background:#88b04b"></span>
+                    <span style="background:#009474"></span>
+                    <span style="background:#50c1bf"></span>
+                    <span style="background:#5f4b8c"></span>
+                    <span style="background:#5b5b9f"></span>
+                    <span style="background:#ad5e99"></span>
+                    <span style="background:#96504d"></span>
+                    <span style="background:#3c3c3c"></span>
+                  </div>
+                </div>
+              </div>
+              <div class="text-right">
+                <a href="#" class="btn btn_ornge btn_lg mt-2" v-on:click.prevent="save_userset()">儲存設定</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/jquery-3.4.1.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/swiper.min.js"></script>
+    <script src="js/fontawesome.min.js"></script>
+    <script src="js/sweetalert2.all.min.js"></script>
+    <script src="js/vue.min.js"></script>
+    <script src="js/vue-awesome-swiper.js"></script>
+    <!-- vue -->
+    <script src="js/json/home.js?v0901"></script>
+    <script src="js/main.js?v0812"></script>
+
+    <script type="text/javascript">
+      Vue.use(window.VueAwesomeSwiper);
+      Vue.config.devtools = true;
+    </script>
+    <script>
+      var app = new Vue({
+        el: '#app',
+        data: json_home,
+        methods: {
+          addCart: function(thisProduct) {
+            // console.log('加入購物車' ,thisProduct);
+            let vm = this;
+            $('.product_list .p_item').removeClass('active');
+            // 加到購物車
+            let addProdct = {
+              name: thisProduct.p_name,
+              num: 1,
+              price: thisProduct.p_price,
+              p_code: thisProduct.p_code,
+              pId: thisProduct.pId,
+              choose: []
+            };
+            vm.cart.cart_product.push(addProdct);
+            vm.cartIndex = vm.cart.cart_product.length - 1;
+            vm.selectCartItem(vm.cart.cart_product.length - 1);
+            // 滾軸到最下方
+            $('.cart_list').animate(
+              {
+                scrollTop: $('.cart_list')[0].scrollHeight
+              },
+              800
+            );
+          },
+          addCartCode: function() {
+            let vm = this;
+            let searchP = vm.product_list.find(item => item.p_code === vm.searchCode);
+            if (searchP != undefined) {
+              vm.thisCateId = searchP.cateId;
+              vm.addCart(searchP);
+              vm.check_product_id = searchP.pId;
+              vm.searchCode = '';
+            } else {
+              $('.search_bar input').select();
+              Swal.fire({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                icon: 'warning',
+                title: '搜尋不到產品'
+              });
+            }
+          },
+          selectCartItem: function(i) {
+            // console.log('選擇某個購物車項目');
+            let vm = this;
+            vm.cartIndex = i;
+            // 列出自選項目
+            let thisP = vm.product_list.find(item => item.pId === vm.cart.cart_product[i].pId);
+            vm.select_product_choose = thisP.p_choose;
+            // 判斷已選中的自選項目
+            let thisProChoose = vm.cart.cart_product[i].choose;
+            $('.choose_list input').attr('checked', '');
+            $('.choose_list input').prop('checked', false);
+            setTimeout(function() {
+              $(thisProChoose).each(function(index, item) {
+                $(`#${item}`).attr('checked', 'checked');
+                $(`#${item}`).prop('checked', true);
+              });
+            }, 10);
+          },
+          selectCutomer: function() {
+            // console.log('選擇自選項目選項');
+            let vm = this;
+            let nowChoose = [];
+            $('.choose_list .form_group input:checked').each(function() {
+              nowChoose.push($(this).val());
+            });
+            vm.cart.cart_product[vm.cartIndex].choose = nowChoose;
+          },
+          delete_product: function(i) {
+            let vm = this;
+            vm.cart.cart_product.splice(i, 1);
+          },
+          clear_all_cart: function() {
+            let vm = this;
+            vm.cart.cart_product = [];
+          },
+          lessNum: function() {
+            let vm = this;
+            if (vm.cart.cart_product[vm.cartIndex].num > 1) {
+              vm.cart.cart_product[vm.cartIndex].num -= 1;
+            }
+          },
+          addNum: function() {
+            let vm = this;
+            vm.cart.cart_product[vm.cartIndex].num += 1;
+          },
+
+          countTotal: function() {
+            let cartTotal = 0;
+            this.cart.cart_product.forEach(item => {
+              cartTotal += parseInt(item.price * item.num);
+            });
+            this.cart.total = cartTotal;
+            return cartTotal;
+          },
+          countNum: function() {
+            let cartNum = 0;
+            this.cart.cart_product.forEach(item => {
+              cartNum += parseInt(item.num);
+            });
+            this.cart.count = cartNum;
+            return cartNum;
+          },
+          checkout_cash: function() {
+            let vm = this;
+            vm.checkOutModal = false;
+            Swal.fire({
+              icon: 'success',
+              title: '結帳成功',
+              html: `發票號碼：${this.invoice_num}<br/>收現金：$${this.get_cash}<br/>
+              找零：$${this.get_cash - this.cart.total}`,
+              showConfirmButton: true,
+              timer: 6000
+            });
+            vm.cart.cart_product = [];
+          },
+          fontsizeUp: function() {
+            vm = this;
+            let fz = parseInt(vm.storeSetUp.userSize);
+            vm.storeSetUp.userSize = fz + 2;
+          },
+          set_color: function(e) {
+            vm = this;
+            vm.storeSetUp.userColor = e.target.style.background;
+            // console.log(vm.storeSetUp.userColor);
+          },
+          save_userset: function() {
+            vm = this;
+            vm.user_setup_modal = false;
+            localStorage.setItem('storeSetUp', JSON.stringify(vm.storeSetUp));
+          },
+
+          sortKey: function(array, key) {
+            return array.sort(function(a, b) {
+              var x = a[key];
+              var y = b[key];
+              return x < y ? -1 : x > y ? 1 : 0;
+            });
+          }
+        },
+        watch: {},
+        computed: {
+          checkout_type_show: function() {
+            let nowType = '';
+            if (this.checkout_type == 'forhere') {
+              nowType = '內用';
+            } else if (this.checkout_type == 'togo') {
+              nowType = '外帶';
+            } else if (this.checkout_type == 'delivery') {
+              nowType = '外送';
+            } else if (this.checkout_type == 'deposit') {
+              nowType = '寄庫單';
+            } else if (this.checkout_type == 'reservation') {
+              nowType = '預約單';
+            }
+
+            return nowType;
+          },
+          categorysList: function() {
+            vm = this;
+            return vm.sortKey(vm.categorys, 'order');
+          }
+        }
+      });
+    </script>
+  </body>
+</html>

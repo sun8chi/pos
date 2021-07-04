@@ -1,0 +1,118 @@
+@import url(https://fonts.googleapis.com/earlyaccess/notosanstc.css);
+@import url(https://fonts.googleapis.com/css?family=Arvo);
+@import url(https://fonts.googleapis.com/css?family=Fugaz+One);
+
+$font_num: 'Arvo', serif;
+$font_price: 'Fugaz One', cursive;
+$font_tw: 'Noto Sans TC', '微軟正黑體', 'Microsoft JhengHei', Meiryo, Verdana, Arial, sans-serif;
+$font_sm: 0.875rem;
+// 全局
+body {
+  font-family: $font_tw;
+}
+p {
+  line-height: 1.7;
+  letter-spacing: 0.07em;
+}
+a {
+  text-decoration: none;
+  &:focus {
+    outline: 0;
+  }
+}
+img {
+  max-width: 100%;
+}
+.iconfont {
+  font-size: 1em;
+}
+@mixin ani {
+  transition: 0.3s ease;
+}
+$blue: #50c1bf;
+$yellow: #fdc106;
+$orange: #f9ac43;
+$red: #b7183f;
+$green: #57e66c;
+.container {
+  display: flex;
+}
+// btn
+.btn_rounded {
+  width: 2rem;
+  height: 2rem;
+  display: inline-block;
+  background: darken($blue, 20%);
+  color: #fff;
+  border-radius: 100%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  i {
+    font-size: 1.2rem;
+  }
+}
+
+.btn_line_white {
+  display: inline-block;
+  border: 2px solid #fff;
+  border-radius: 50px;
+  color: #fff;
+  padding: 2px 15px;
+  i {
+    color: #fff !important;
+  }
+}
+.btn {
+  display: inline-block;
+  border-radius: 5px;
+  padding: 7px 15px;
+  background: $blue;
+  color: #fff;
+  font-size: 1rem;
+  &:hover {
+    background: darken($blue, 20%);
+  }
+}
+.btn_lg {
+  padding: 12px;
+  font-size: 1.1rem;
+}
+.btn_ornge {
+  background: $orange;
+  &:hover {
+    background: darken($orange, 20%);
+  }
+}
+.btn_block {
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+.btn_line {
+  display: inline-block;
+  border: 2px solid $blue;
+  border-radius: 5px;
+  padding: 7px 15px;
+  color: $blue;
+  font-size: 1rem;
+  &:hover {
+    background: $blue;
+    color: #fff;
+  }
+}
+.btn_line_red {
+  border: 2px solid $red;
+  color: $red;
+  &:hover {
+    background: $red;
+  }
+}
+
+.swiper-button-prev,.swiper-button-next {
+  color: $blue;
+  &::after {
+    font-size: 2rem;
+  }
+}

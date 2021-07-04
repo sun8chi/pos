@@ -1,0 +1,16 @@
+.table {
+  width: 100%;
+  th,td {
+    padding: 10px;
+    text-align: left;
+  }
+  thead {
+    background: #eee;
+  }
+  tbody tr:hover {
+    background: rgb(242, 242, 242);
+  }
+  tr {
+    border-bottom: 1px solid #eee;
+  }
+}

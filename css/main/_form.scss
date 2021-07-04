@@ -1,0 +1,12 @@
+.inline_form {
+  display: flex;
+  align-items: center;
+}
+input,
+select {
+  width: 100%;
+  padding: 8px 20px;
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 50px;
+}
